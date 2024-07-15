@@ -1,0 +1,24 @@
+# Build Go project using the builder platform
+FROM --platform=$BUILDPLATFORM golang:1.22 AS builder
+ARG TARGETOS
+ARG TARGETARCH
+WORKDIR /blueprint
+
+# Pre-download and install
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
+
+# Build
+COPY internal ./internal
+COPY .env ./
+COPY cmd/cli/commands ./cmd/cli/commands
+COPY cmd/cli/cli.go ./main.go
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o ./build/blueprint.app
+
+# Create the final image with the requested architecture (buildx)
+FROM --platform=$TARGETPLATFORM golang:1.22 AS production
+WORKDIR /go/bin/blueprint
+COPY --from=builder /blueprint/.env ./.env
+COPY --from=builder /blueprint/build/blueprint.app ./blueprint-cli.app
+ENTRYPOINT ["./blueprint-cli.app"]
+CMD ["--help"]

@@ -1,0 +1,102 @@
+services:
+  bp-database:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - 54322:5432
+    volumes:
+      - ./volumes/bp-database:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-blueprint}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-blueprint}
+      POSTGRES_DB: ${POSTGRES_DB:-blueprint}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-blueprint}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - blueprint-network
+
+  bp-migrate:
+    build:
+      context: ../
+      dockerfile: ./build/docker-migrate
+      target: production
+    image: blueprint-migrate
+    depends_on:
+      bp-database:
+        condition: service_healthy
+    environment:
+      DB_HOST: ${DB_HOST:-bp-database}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USERNAME: ${DB_USERNAME:-blueprint}
+      DB_PASSWORD: ${DB_PASSWORD:-blueprint}
+      DB_USER: ${DB_USER:-blueprint}
+      DB_NAME: ${DB_NAME:-blueprint}
+      DB_SSL_MODE: ${DB_SSL_MODE:-disable}
+    networks:
+      - blueprint-network
+
+  bp-webapp:
+    build:
+      context: ../
+      dockerfile: build/docker-webapp
+      target: production
+    image: blueprint-webapp
+    restart: unless-stopped
+    ports:
+      - 8003:8003
+    depends_on:
+      bp-database:
+        condition: service_healthy
+    environment:
+      DB_HOST: ${DB_HOST:-bp-database}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USERNAME: ${DB_USERNAME:-blueprint}
+      DB_PASSWORD: ${DB_PASSWORD:-blueprint}
+      DB_NAME: ${DB_NAME:-blueprint}
+      DB_SSL_MODE: ${DB_SSL_MODE:-disable}
+      DB_LOG_SLOW_QUERY_THRESHOLD: ${DB_LOG_SLOW_QUERY_THRESHOLD:-1}
+      APP_PORT: ${APP_PORT:-8003}
+      APP_MODE: ${APP_MODE:-debug}
+      APP_CORS_ORIGIN: ${APP_CORS_ORIGIN:-http://localhost:5173}
+      SEARCH_RELEVANCE_THRESHOLD: ${SEARCH_RELEVANCE_THRESHOLD:-0.05}
+    healthcheck:
+      test: >
+        sh -c 'wget -S -q  -O -  http://127.0.0.1:8003/api/v1/health-check 2>&1 >/dev/null | grep "200 OK"'
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - blueprint-network
+
+  bp-cli:
+    build:
+      context: ../
+      dockerfile: build/docker-cli
+      target: production
+    image: blueprint-cli
+    restart: unless-stopped
+    depends_on:
+      bp-webapp:
+        condition: service_healthy
+    environment:
+      DB_HOST: ${DB_HOST:-bp-database}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USERNAME: ${DB_USERNAME:-blueprint}
+      DB_PASSWORD: ${DB_PASSWORD:-blueprint}
+      DB_USER: ${DB_USER:-blueprint}
+      DB_NAME: ${DB_NAME:-blueprint}
+      DB_SSL_MODE: ${DB_SSL_MODE:-disable}
+      DB_LOG_SLOW_QUERY_THRESHOLD: ${DB_LOG_SLOW_QUERY_THRESHOLD:-1}
+      APP_PORT: ${APP_PORT:-8003}
+      APP_MODE: ${APP_MODE:-debug}
+      APP_CORS_ORIGIN: ${APP_CORS_ORIGIN:-http://localhost:5173}
+      SEARCH_RELEVANCE_THRESHOLD: ${SEARCH_RELEVANCE_THRESHOLD:-0.05}
+    networks:
+      - blueprint-network
+
+networks:
+  blueprint-network:
+    driver: bridge
