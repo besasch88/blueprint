@@ -31,6 +31,13 @@ func ReturnBadRequestError(ctx *gin.Context, err error) {
 }
 
 /*
+ReturnUnauthorizedError returns an Unauthroized status code (401).
+*/
+func ReturnUnauthorizedError(ctx *gin.Context) {
+	ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"errors": []string{"unauthorized"}})
+}
+
+/*
 ReturnForbiddenError returns a Forbidden status code (403).
 */
 func ReturnForbiddenError(ctx *gin.Context) {

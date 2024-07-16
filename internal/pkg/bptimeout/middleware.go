@@ -1,4 +1,4 @@
-package bpmiddleware
+package bptimeout
 
 import (
 	"time"

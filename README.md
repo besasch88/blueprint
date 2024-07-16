@@ -20,13 +20,13 @@ The answer should be something like this according to your installed version and
 go version go1.22.4 darwin/amd64
 ```
 
-### Start PostgreSql
-Navigate in the `build` folder and start the Postgres DB inside Docker:
+### Start external services
+Navigate in the `build` folder and start the Postgres DB and Redis inside Docker:
 ``` sh
 cd build
-docker compose up bp-database -d
+docker compose up bp-database bp-redis -d
 ```
-It contains only a PostgresQL database server mapped on the local port `54322`. Feel free to take a look to the docker-compose file to retrieve DB credentials if you want to use an external tool to connect with.
+It contains a PostgresQL database server mapped on the local port `54322` and a Redis service mapped on the local port `63792`. Feel free to take a look to the docker-compose file to retrieve credentials if you want to use an external tool to connect with.
 
 ### Migration Tool
 The Migration Tool is a command that help you in creating migrations, apply or revert thanks to migration versioning. Let's start by installing the migration tool:
@@ -44,7 +44,7 @@ migrate -path "./scripts/migrations" -database "postgres://blueprint:blueprint@1
 ```
 or simply running this file as a shortcut:
 ``` sh
-./scripts/migrate_local.sh
+./scripts/migrate-local.sh
 ```
 Looking to the docker-compose file, you will notice that there is a dedicated service aims to apply migrations each time the project is deployed in your production environment. Basically it starts, applies all the migrations and shutdown.
 

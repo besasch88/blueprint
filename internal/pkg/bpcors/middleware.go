@@ -1,4 +1,4 @@
-package bpmiddleware
+package bpcors
 
 import (
 	"github.com/gin-contrib/cors"

@@ -16,17 +16,22 @@ It is possible to set each variable as mandatory as input or optional, in which 
 to define a default value.
 */
 type Envs struct {
-	DbHost                   string
-	DbPort                   int
-	DbUsername               string
-	DbPassword               string
-	DbName                   string
-	DbSslMode                string
-	DbLogSlowQueryThreshold  int
-	AppPort                  int
-	AppMode                  string
-	AppCorsOrigin            string
-	SearchRelevanceThreshold float64
+	DbHost                               string
+	DbPort                               int
+	DbUsername                           string
+	DbPassword                           string
+	DbName                               string
+	DbSslMode                            string
+	DbLogSlowQueryThreshold              int
+	AppPort                              int
+	AppMode                              string
+	AppCorsOrigin                        string
+	SearchRelevanceThreshold             float64
+	RateLimitRedisConnectionURI          string
+	RateLimitAnonymousTimeRangeSeconds   int
+	RateLimitAnonymousMaxRequestsInRange int
+	RateLimitAuthUserTimeRangeSeconds    int
+	RateLimitAuthUserMaxRequestsInRange  int
 }
 
 /*
@@ -35,17 +40,22 @@ ReadEnvs function reads all the Env Variables.
 func ReadEnvs() *Envs {
 	godotenv.Load()
 	envs := Envs{
-		DbHost:                   getMandatoryStringValue("DB_HOST"),
-		DbPort:                   getMandatoryIntValue("DB_PORT"),
-		DbUsername:               getMandatoryStringValue("DB_USERNAME"),
-		DbPassword:               getMandatoryStringValue("DB_PASSWORD"),
-		DbName:                   getMandatoryStringValue("DB_NAME"),
-		DbSslMode:                getMandatoryStringValue("DB_SSL_MODE"),
-		DbLogSlowQueryThreshold:  getMandatoryIntValue("DB_LOG_SLOW_QUERY_THRESHOLD"),
-		AppPort:                  getMandatoryIntValue("APP_PORT"),
-		AppMode:                  getMandatoryStringValue("APP_MODE"),
-		AppCorsOrigin:            getMandatoryStringValue("APP_CORS_ORIGIN"),
-		SearchRelevanceThreshold: getMandatoryFloatValue("SEARCH_RELEVANCE_THRESHOLD"),
+		DbHost:                               getMandatoryStringValue("DB_HOST"),
+		DbPort:                               getMandatoryIntValue("DB_PORT"),
+		DbUsername:                           getMandatoryStringValue("DB_USERNAME"),
+		DbPassword:                           getMandatoryStringValue("DB_PASSWORD"),
+		DbName:                               getMandatoryStringValue("DB_NAME"),
+		DbSslMode:                            getMandatoryStringValue("DB_SSL_MODE"),
+		DbLogSlowQueryThreshold:              getMandatoryIntValue("DB_LOG_SLOW_QUERY_THRESHOLD"),
+		AppPort:                              getMandatoryIntValue("APP_PORT"),
+		AppMode:                              getMandatoryStringValue("APP_MODE"),
+		AppCorsOrigin:                        getMandatoryStringValue("APP_CORS_ORIGIN"),
+		SearchRelevanceThreshold:             getMandatoryFloatValue("SEARCH_RELEVANCE_THRESHOLD"),
+		RateLimitRedisConnectionURI:          getMandatoryStringValue("RATE_LIMIT_REDIS_CONNECTION_URI"),
+		RateLimitAnonymousTimeRangeSeconds:   getMandatoryIntValue("RATE_LIMIT_ANONYMOUS_TIME_RANGE_SECONDS"),
+		RateLimitAnonymousMaxRequestsInRange: getMandatoryIntValue("RATE_LIMIT_ANONYMOUS_MAX_REQUESTS_IN_RANGE"),
+		RateLimitAuthUserTimeRangeSeconds:    getMandatoryIntValue("RATE_LIMIT_AUTH_USER_TIME_RANGE_SECONDS"),
+		RateLimitAuthUserMaxRequestsInRange:  getMandatoryIntValue("RATE_LIMIT_AUTH_USER_MAX_REQUESTS_IN_RANGE"),
 	}
 
 	return &envs

@@ -3,8 +3,10 @@ package user
 import (
 	"time"
 
-	"github.com/besasch88/blueprint/internal/pkg/bpmiddleware"
+	"github.com/besasch88/blueprint/internal/pkg/bpauth"
+	"github.com/besasch88/blueprint/internal/pkg/bpratelimit"
 	"github.com/besasch88/blueprint/internal/pkg/bprouter"
+	"github.com/besasch88/blueprint/internal/pkg/bptimeout"
 	"go.uber.org/zap"
 
 	"github.com/gin-gonic/gin"
@@ -28,7 +30,9 @@ func newUserRouter(service userServiceInterface) userRouter {
 func (r userRouter) register(router *gin.RouterGroup) {
 	router.GET(
 		"/users/:userID",
-		bpmiddleware.TimeoutMiddleware(time.Duration(1)*time.Second),
+		bpauth.AuthMiddleware([]string{bpauth.UserGet}),
+		bptimeout.TimeoutMiddleware(time.Duration(1)*time.Second),
+		bpratelimit.RateLimitMiddleware(),
 		func(ctx *gin.Context) {
 			// Input validation
 			var request getUserInputDto

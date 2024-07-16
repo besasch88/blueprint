@@ -11,10 +11,11 @@ import (
 	"time"
 
 	"github.com/besasch88/blueprint/internal/app/user"
+	"github.com/besasch88/blueprint/internal/pkg/bpcors"
 	"github.com/besasch88/blueprint/internal/pkg/bpdb"
 	"github.com/besasch88/blueprint/internal/pkg/bpenv"
-	"github.com/besasch88/blueprint/internal/pkg/bpmiddleware"
 	"github.com/besasch88/blueprint/internal/pkg/bppubsub"
+	"github.com/besasch88/blueprint/internal/pkg/bpratelimit"
 	"github.com/besasch88/blueprint/internal/pkg/bprouter"
 	"go.uber.org/zap"
 
@@ -51,6 +52,14 @@ func main() {
 	)
 	// PUB-SUB agent
 	pubSubAgent := bppubsub.NewPubSubAgent()
+	// Rate Limit initialization
+	bpratelimit.Init(
+		envs.RateLimitRedisConnectionURI,
+		envs.RateLimitAnonymousTimeRangeSeconds,
+		envs.RateLimitAnonymousMaxRequestsInRange,
+		envs.RateLimitAuthUserTimeRangeSeconds,
+		envs.RateLimitAuthUserMaxRequestsInRange,
+	)
 
 	// Start Server
 	zap.L().Info("Starting HTTP Server...", zap.String("service", "webapp"))
@@ -60,9 +69,9 @@ func main() {
 	// Cors Middleware
 	allowOrigins := []string{envs.AppCorsOrigin}
 	if envs.AppMode != "release" {
-		allowOrigins = append(allowOrigins, bpmiddleware.LocalhostOrigin)
+		allowOrigins = append(allowOrigins, bpcors.LocalhostOrigin)
 	}
-	r.Use(bpmiddleware.CorsMiddleware(allowOrigins))
+	r.Use(bpcors.CorsMiddleware(allowOrigins))
 
 	r.NoRoute(func(ctx *gin.Context) {
 		bprouter.ReturnNotFoundError(ctx, errors.New("endpoint-not-found"))
